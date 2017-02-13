@@ -15,6 +15,14 @@ namespace Nexmo.Api
             public string clientRef { get; set; }
         }
 
+        public class TwoFactorAuthStringRequest
+        {
+            public string to { get; set; }
+            public string pin { get; set; }
+            [JsonProperty("client-ref")]
+            public string clientRef { get; set; }
+        }
+
         public class AlertRequest
         {
             public string to { get; set; }
@@ -37,6 +45,23 @@ namespace Nexmo.Api
             if (!request.pin.HasValue)
             {
                 request.pin = new Random().Next(0, 9999);
+            }
+
+            var json = ApiRequest.DoRequest(ApiRequest.GetBaseUriFor(typeof(ShortCode), "/sc/us/2fa/json"), request, creds);
+            return JsonConvert.DeserializeObject<SMS.SMSResponse>(json);
+        }
+
+        /// <summary>
+        /// Send a 2FA string request.
+        /// </summary>
+        /// <param name="request">2FA request</param>
+        /// <param name="creds">(Optional) Overridden credentials for only this request</param>
+        /// <returns></returns>
+        public static SMS.SMSResponse RequestTwoFactorAuthString(TwoFactorAuthStringRequest request, Credentials creds = null)
+        {
+            if (string.IsNullOrWhiteSpace(request.pin))
+            {
+                request.pin = string.Format("{0:0000}", new Random().Next(0, 9999));
             }
 
             var json = ApiRequest.DoRequest(ApiRequest.GetBaseUriFor(typeof(ShortCode), "/sc/us/2fa/json"), request, creds);
